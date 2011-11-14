@@ -40,6 +40,7 @@ package com.expressui.sample.view.opportunity;
 import com.expressui.core.view.CrudResults;
 import com.expressui.core.view.ResultsTable;
 import com.expressui.core.view.field.DisplayFields;
+import com.expressui.core.view.field.format.JDKFormatPropertyFormatter;
 import com.expressui.sample.dao.OpportunityDao;
 import com.expressui.sample.entity.Opportunity;
 import com.vaadin.terminal.Sizeable;
@@ -47,6 +48,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 @Component
 @Scope("prototype")
@@ -82,13 +85,17 @@ public class OpportunityResults extends CrudResults<Opportunity> {
         displayFields.setPropertyIds(new String[]{
                 "name",
                 "salesStage",
-                "amountWeightedInUSDFormatted",
+                "amountWeightedInUSD",
                 "expectedCloseDate",
                 "lastModified",
                 "modifiedBy"
         });
 
-        displayFields.setLabel("amountWeightedInUSDFormatted", "Weighted Amount");
+        displayFields.setLabel("amountWeightedInUSD", "Weighted Amount");
+        NumberFormat numberFormat = NumberFormat.getCurrencyInstance(Locale.US);
+        numberFormat.setMaximumFractionDigits(0);
+        JDKFormatPropertyFormatter formatter = new JDKFormatPropertyFormatter(numberFormat);
+        displayFields.setPropertyFormatter("amountWeightedInUSD", formatter);
     }
 
     @Override

@@ -35,66 +35,63 @@
  * address: juan@brownbagconsulting.com.
  */
 
-package com.expressui.sample.dao;
+package com.expressui.sample.view.dashboard;
 
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.expressui.sample.entity.*;
-import com.expressui.sample.view.contact.ContactQuery;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.expressui.core.view.CrudResults;
+import com.expressui.core.view.field.DisplayFields;
+import com.expressui.sample.dao.ContactDao;
+import com.expressui.sample.entity.Contact;
+import com.expressui.sample.view.account.AccountForm;
+import com.expressui.sample.view.contact.ContactForm;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.List;
 
-public class ContactDaoTest extends AbstractDomainTest {
+@Component
+@Scope("prototype")
+@SuppressWarnings({"serial"})
+public class RecentContactResults extends CrudResults<Contact> {
 
     @Resource
     private ContactDao contactDao;
 
     @Resource
-    private AddressDao addressDao;
+    private RecentContactsQuery recentContactsQuery;
 
     @Resource
-    private StateDao stateDao;
+    private ContactForm contactForm;
 
     @Resource
-    private CountryDao countryDao;
+    private AccountForm accountForm;
 
-    @Resource
-    private ContactQuery contactQuery;
-
-    @Before
-    public void createContact() throws NumberParseException {
-
-        Country country = new Country("XX");
-        countryDao.persist(country);
-        State state = new State("XX-NC", "North Carolina", country);
-        stateDao.persist(state);
-
-        Contact contact = new Contact();
-        contact.setFirstName("Juan");
-        contact.setLastName("Osuna");
-        contact.setMainPhone(new Phone("(704) 555-1212", "US"));
-        contact.setMainPhoneType(PhoneType.BUSINESS);
-
-        Address address = new Address(AddressType.MAILING);
-        address.setStreet("100 Main St.");
-        address.setCity("Charlotte");
-        address.setState(state);
-        address.setCountry(country);
-        addressDao.persist(address);
-        contact.setMailingAddress(address);
-        contact.setOtherAddress(null);
-        contactDao.persist(contact);
+    @Override
+    public ContactDao getEntityDao() {
+        return contactDao;
     }
 
-    @Test
-    public void findByName() throws NumberParseException {
-        contactQuery.setLastName("Osuna");
-        List<Contact> contacts = contactQuery.execute();
-        Assert.assertNotNull(contacts);
-        Assert.assertTrue(contacts.size() > 0);
-        Assert.assertEquals("Osuna", contacts.get(0).getLastName());
+    @Override
+    public RecentContactsQuery getEntityQuery() {
+        return recentContactsQuery;
+    }
+
+    @Override
+    public ContactForm getEntityForm() {
+        return contactForm;
+    }
+
+    @Override
+    public void configureFields(DisplayFields displayFields) {
+        displayFields.setPropertyIds(new String[]{
+                "name",
+                "mailingAddress.street",
+                "mailingAddress.city",
+                "mailingAddress.state.code",
+                "mailingAddress.country",
+                "lastModified"
+        });
+
+        displayFields.setSortable("name", false);
+        displayFields.setLabel("mailingAddress.state.code", "State");
     }
 }
